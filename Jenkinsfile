@@ -9,12 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    def EXT_PORT
-                    if (BRANCH_NAME == 'dev') {
-                        EXT_PORT = 1480
-                    } else {
-                        EXT_PORT = 1580
-                    }
+                    
                     sh '''
                         docker login -u $DOCKER_CREDS_USR -p $DOCKER_CREDS_PSW
                         docker build . -t bismabaig/node-app:$BRANCH_NAME-latest -t bismabaig/node-app:$BRANCH_NAME-$BUILD_ID
@@ -27,7 +22,16 @@ pipeline {
     }
     post { 
         success {
-            sh 'docker-compose up -d'
+            script{
+            if (BRANCH_NAME == 'development') {
+                     sh 'echo EXT_PORT=1480 > .env'
+                    } else {
+                     sh 'echo EXT_PORT=1580 > .env'
+                    }
+                sh 'docker-compose up -d'
+            }
+            
+            
         }
         failure { 
             echo 'Build failed!'
